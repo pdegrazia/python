@@ -1,47 +1,57 @@
 import socket
-import subprocess
-import sys
 from datetime import datetime
+from resources import *
 
-remoteServer = 'www.gazzetta.it'
-remoteServerIP = socket.gethostbyname(remoteServer)
 
-start_time = datetime.now()
-common_ports = {
-	'21': 'FTP',
-	'22': 'SSH',
-	'23': 'TELNET',
-	'25': 'SMTP',
-	'53': 'DNS',
-	'69': 'TFTP',
-	'80': 'HTTP',
-	'109': 'POP2',
-	'110': 'POP3',
-	'123': 'NTP',
-	'137': 'NETBIOS-NS',
-	'138': 'NETBIOS-DGM',
-	'139': 'NETBIOS-SSN',
-	'143': 'IMAP',
-	'156': 'SQL-SERVER',
-	'389': 'LDAP',
-	'443': 'HTTPS',
-	'546': 'DHCP-CLIENT',
-	'547': 'DHCP-SERVER',
-	'995': 'POP3-SSL',
-	'993': 'IMAP-SSL',
-	'2086': 'WHM/CPANEL',
-	'2087': 'WHM/CPANEL',
-	'2082': 'CPANEL',
-	'2083': 'CPANEL',
-	'3306': 'MYSQL',
-	'8443': 'PLESK',
-	'10000': 'VIRTUALMIN/WEBMIN'
-}
+class PortScanner:
+	def __init__(self):
+		self.server_list = server_list
+		self.ports = common_ports.keys()
+		self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		socket.setdefaulttimeout(0.5)
 
-for port in sorted(common_ports):
-    port = int(port)
-    print 'scanning port %i' % port
-    sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    result = sock.connect_ex((remoteServerIP,port))
-    print 'Port %i: \t%i' %(port,result)
-    sock.close()
+	def print_ports_to_scan(self):
+		for port in self.ports:
+			print port
+
+	def print_servers_to_scan(self):
+		for server in self.server_list:
+			print server
+
+	def start_scanning(self):
+		for server in self.server_list:
+			print 'Scanning Server %s:' % server
+			print 'Resolving host...'
+			server_ip = self.resolve_name(server)
+			print 'Server hosted on %s' % str(server_ip)
+			for port in self.ports:
+				start = datetime.now()
+				result = self.check_port(server_ip,port)
+				if result == 0:
+					print 'Port %s opened!' % port
+				elapsed_time = datetime.now() - start
+				self.sock.close()
+				print 'Elapsed time: %s' % str(elapsed_time)
+
+	def check_port(self,server,port):
+
+		return self.sock.connect_ex((server,int(port)))
+
+	def resolve_name(self,server_name):
+		return socket.gethostbyname(server_name)
+
+
+class PortListener(PortScanner):
+	def __init__(self):
+		PortScanner.__init__(self)
+
+	def listen_on_port(self,port):
+		self.sock.bind((port,server_list[0]))
+		self.sock.listen(5)
+
+if __name__ == '__main__':
+	ps = PortScanner()
+	ps.start_scanning()
+
+	# pl = PortListener()
+	# pl.listen_on_port(80)
