@@ -29,4 +29,4 @@ common_ports = {
 	'10000': 'VIRTUALMIN/WEBMIN'
 }
 
-server_list=['www.gazzetta.it','www.repubblica.it']
+server_list=['www.pallavoloromana.it','www.repubblica.it']
